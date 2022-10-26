@@ -1,0 +1,35 @@
+
+model
+{
+  # Likelihood
+  for( t in 1:Today ){
+  for(d in 0:D){
+  n_gain[t,(d+1)] ~ dpois(lambda_gain[t,(d+1)])
+  log(lambda_gain[t,(d+1)]) <- alpha_gain[t] + beta_gain.logged[(d+1)]
+  # hier dann streichen
+  n_streich[t,(d+1)] ~ dpois(lambda_streich[t,(d+1)])
+  log(lambda_streich[t,(d+1)]) <- alpha_streich[t] + beta_streich.logged[(d+1)]
+  n[t,(d+1)] = n_gain[t,(d+1)] - n_streich[t,(d+1)]
+  }
+  sum.n[t] <- sum(n[t,])
+  sum_gain.lambda[t] <- sum(lambda_gain[t,])
+  sum_streich.lambda[t] <- sum(lambda_streich[t,])
+  #sum.lambda[t] <- sum(lambda[t,])
+  }
+  # Prior for alpha
+  alpha_gain[1] ~ dnorm(alpha1.mean.prior, alpha1.prec.prior)
+  alpha_streich[1] ~ dnorm(alpha1.mean.prior, alpha1.prec.prior)
+  for( t in 2:Today ){
+  alpha_gain[t] ~ dnorm(alpha_gain[t-1],tau2.alpha)
+  alpha_streich[t] ~ dnorm(alpha_streich[t-1],tau2.alpha)
+  }
+  ## Prior for beta
+  beta_gain.logged <- log(beta_gain)
+  beta_gain ~ ddirch(beta_gain.priors)
+  beta_streich.logged <- log(beta_streich)
+  beta_streich ~ ddirch(beta_streich.priors)
+  
+  # Prior for variance
+  tau2.alpha ~ dgamma(alphat.shape.prior,alphat.rate.prior)
+}
+
