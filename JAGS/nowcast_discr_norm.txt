@@ -1,0 +1,29 @@
+
+model
+{
+  # Likelihood
+  for( t in 1:Today ){
+  for(d in 0:D){
+  n[t,(d+1)] ~ dnorm(my[t,(d+1)], prec)
+  my[t,(d+1)] = v_my[t,(d+1)] 
+  log(v_my[t,(d+1)]) = alpha[t] + beta.logged[(d+1)]
+  dis_n[t,(d+1)] = trunc(n[t,(d+1)])
+  # round macht nicht wirklich Sinn
+  }
+  sum.n[t] = sum(dis_n[t,])
+  }
+  # Prior for alpha
+  alpha[1] ~ dnorm(alpha1.mean.prior, alpha1.prec.prior)
+  for( t in 2:Today ){
+  alpha[t] ~ dnorm(alpha[t-1],tau2.alpha)
+  }
+  ## Prior for beta
+  beta.logged = log(beta)
+  beta ~ ddirch(beta.priors)
+  
+  # Prior for variance
+  tau2.alpha ~ dgamma(alphat.shape.prior,alphat.rate.prior)
+  prec ~ dgamma(prec.shape.prior,prec.rate.prior)
+  
+}
+

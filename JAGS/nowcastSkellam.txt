@@ -1,0 +1,36 @@
+
+model
+{
+  # Likelihood
+  for( t in 1:Today ){
+  for(d in 0:D){
+  n[t,(d+1)] = Z1[t, (d+1)] - Z2[t, (d+1)]
+  Z1[t, (d+1)] ~ dpois(lambda_1[t,(d+1)])
+  Z2[t, (d+1)] ~ dpois(lambda_2[t,(d+1)])
+  lambda_1[t,(d+1)] = (my[t,(d+1)] * ((1 + psi) * (1 - equals(my[t,(d+1)],0)) * step(my[t,(d+1)]) + 1))/2
+  lambda_2[t,(d+1)] = (my[t,(d+1)] * ((1 + psi) * (1 - equals(my[t,(d+1)],0)) * step(my[t,(d+1)]) - 1))/2
+  my[t,(d+1)] = v_my[t,(d+1)] * sign[d+1]
+  log(v_my[t,(d+1)]) = alpha[t] + beta.logged[(d+1)]
+  }
+  sum.n[t] <- sum(n[t,])
+  }
+  # Prior for alpha
+  alpha[1] ~ dnorm(alpha1.mean.prior, alpha1.prec.prior)
+  for( t in 2:Today ){
+  alpha[t] ~ dnorm(alpha[t-1],tau2.alpha)
+  }
+  ## Prior for beta
+  beta.logged = log(beta)
+  beta ~ ddirch(beta.priors)
+  
+  ## Prior for sign
+  sign = (2 * bin) - 1
+  for(d in 0:D){
+  bin[d+1] ~ dbern(p_pos.prior[d+1])
+  }
+  # Prior for variance
+  tau2.alpha ~ dgamma(alphat.shape.prior,alphat.rate.prior)   
+  psi ~ dgamma(psi.shape.prior,psi.rate.prior)
+
+}
+
